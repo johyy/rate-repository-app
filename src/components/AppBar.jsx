@@ -1,7 +1,10 @@
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
 import Constants from 'expo-constants';
 import AppBarTab from './AppBarTab';
-import { Link } from "react-router-native";
+import { Link, useNavigate } from "react-router-native";
+import { useQuery } from '@apollo/client';
+import { ME } from '../graphql/queries';
+import useSignOut from '../hooks/useSignOut';
 
 const styles = StyleSheet.create({
   container: {
@@ -11,16 +14,39 @@ const styles = StyleSheet.create({
   },
 });
 
+const AuthTab = ({ isSignedIn, onSignOut }) => {
+  if (isSignedIn) {
+    return (
+      <Pressable onPress={onSignOut}>
+        <AppBarTab text="Sign out" />
+      </Pressable>
+    );
+  }
+  return (
+    <Link to="/signin">
+      <AppBarTab text="Sign in" />
+    </Link>
+  );
+};
+
 const AppBar = () => {
+
+  const { data } = useQuery(ME, { fetchPolicy: 'cache-and-network' });
+  const signOut = useSignOut();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    signOut();
+    navigate('/signin'); 
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView horizontal>
         <Link to="/">
           <AppBarTab text="Repositories" />
         </Link>
-        <Link to="signin">
-          <AppBarTab text="Sign in" />
-        </Link>
+        <AuthTab isSignedIn={data?.me} onSignOut={handleSignOut} />
       </ScrollView>
     </View>
   );
