@@ -4,6 +4,9 @@ import * as yup from 'yup';
 import useSignIn from '../hooks/useSignIn';
 import { useNavigate } from 'react-router-native';
 import Text from './Text';
+import { useMutation } from '@apollo/client';
+import { CREATE_USER } from '../graphql/mutations';
+
 
 const styles = StyleSheet.create({
   itemWrapper: {
@@ -11,7 +14,7 @@ const styles = StyleSheet.create({
     padding: 5
   },
   submitTag: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#007bff',
     padding: 10,
     borderRadius: 5,
     alignItems: 'center', 
@@ -31,7 +34,7 @@ const styles = StyleSheet.create({
   textTagRed: {
     padding: 10,
     borderRadius: 5,
-    borderColor: "#D73A4A",
+    borderColor: "#d73a4a",
     borderWidth: 1,
     marginBottom: 10
   },
@@ -43,19 +46,28 @@ const styles = StyleSheet.create({
 
 const initialValues = {
   username: '',
-  password: ''
+  password: '',
+  passwordConfirm: ''
 };
 
 const validationSchema = yup.object().shape({
   username: yup
     .string()
+    .min(5, 'Minimum length of a username is 5 characters')
+    .max(30, 'Maximum length of a username is 30 characters')
     .required('Username is required'),
   password: yup
     .string()
-    .required('Password is required')
+    .min(5, 'Minimum length of a password is 5 characters')
+    .max(30, 'Maximum length of a password is 50 characters')
+    .required('Password is required'),
+  passwordConfirm: yup
+    .string()
+    .oneOf([yup.ref('password'), 'Passwords do not match'])
+    .required('Password confirmation is required')
 });
 
-const SignInForm = ({ onSubmit }) => {
+const SignUpForm = ({ onSubmit }) => {
   const formik = useFormik({
     initialValues,
     validationSchema,
@@ -86,8 +98,19 @@ const SignInForm = ({ onSubmit }) => {
         {formik.touched.password && formik.errors.password&& (
           <Text style={{ color: '#D73A4A' }}>{formik.errors.password}</Text>
         )}
+        <TextInput
+          style={formik.errors.passwordConfirm && formik.touched.passwordConfirm ? styles.textTagRed : styles.textTagGray}
+          secureTextEntry
+          placeholder="Password confirmation"
+          placeholderTextColor="#D3D3D3"
+          value={formik.values.passwordConfirm}
+          onChangeText={formik.handleChange('passwordConfirm')}
+        />
+        {formik.touched.passwordConfirm && formik.errors.passwordConfirm&& (
+          <Text style={{ color: '#D73A4A' }}>{formik.errors.passwordConfirm}</Text>
+        )}
         <Pressable onPress={formik.handleSubmit} style={styles.submitTag}>
-          <Text style={styles.submitText}>Sign in</Text>
+          <Text style={styles.submitText}>Sign up</Text>
         </Pressable>
       </View>
       <View style={styles.grayBackground}></View>
@@ -95,24 +118,34 @@ const SignInForm = ({ onSubmit }) => {
   )
 };
 
-const SignIn = () => {
-  const [signIn] = useSignIn();
+const SignUp = () => {
+  const [createUser] = useMutation(CREATE_USER);
   const navigate = useNavigate();
+  const [signIn] = useSignIn();
 
   const onSubmit = async (values) => {
     const { username, password } = values;
 
+    const userInput = {
+        username: username,
+        password: password
+    };
+
+    const { data } = await createUser({
+        variables: {
+            user: userInput
+        }
+    });
+
     try {
-      const { accessToken } = await signIn({ username, password });
-      console.log(accessToken);
-      navigate('/');
-    } catch (e) {
-      console.log(e);
-    }
-  };
+        const { accessToken } = await signIn({ username, password });
+        navigate('/');
+      } catch (e) {
+        console.log(e);
+      }
+    };
 
-
-  return <SignInForm onSubmit={onSubmit} />;
+  return <SignUpForm onSubmit={onSubmit} />;
 };
 
-export default SignIn;
+export default SignUp;

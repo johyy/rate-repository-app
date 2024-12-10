@@ -17,15 +17,29 @@ const styles = StyleSheet.create({
 const AuthTab = ({ isSignedIn, onSignOut }) => {
   if (isSignedIn) {
     return (
-      <Pressable onPress={onSignOut}>
-        <AppBarTab text="Sign out" />
-      </Pressable>
+      <>
+        <Link to="/createreview">
+          <AppBarTab text="Create a review" />
+        </Link>
+        <Link to="/reviews">
+          <AppBarTab text="My reviews" />
+        </Link>
+        <Pressable onPress={onSignOut}>
+          <AppBarTab text="Sign out" />
+        </Pressable>
+      </>
     );
   }
+  
   return (
-    <Link to="/signin">
-      <AppBarTab text="Sign in" />
-    </Link>
+    <>
+      <Link to="/signin">
+        <AppBarTab text="Sign in" />
+      </Link>
+      <Link to ="/signup">
+        <AppBarTab text="Sign up" />
+      </Link>
+    </>
   );
 };
 

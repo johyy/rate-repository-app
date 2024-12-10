@@ -1,7 +1,8 @@
 import React from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, View, Button } from 'react-native';
 import Text from './Text';
 import RepositoryItemDetails from './RepositoryItemDetails';
+import * as Linking from 'expo-linking';
 
 const styles = StyleSheet.create({
   itemWrapper: {
@@ -35,17 +36,18 @@ const styles = StyleSheet.create({
   },
   textSpacing: {
     marginBottom: 5
-  },
-  grayLine: {
-    backgroundColor: '#D3D3D3', 
-    height: 10,
   }
 });
 
-const RepositoryItem = ({ repository }) => {
+const RepositoryItem = ({ repository, showGitHubButton }) => {
+
+  const openGitHub = () => {
+    Linking.openURL(repository.url)
+  };
+
   return (
     <>
-      <View style={styles.itemWrapper}>
+      <View testID="repositoryItem" style={styles.itemWrapper}>
         <View style={styles.container}>
           <View style={styles.logoContainer}>
             <Image
@@ -65,9 +67,13 @@ const RepositoryItem = ({ repository }) => {
             </View>
           </View>
         </View>
-        <RepositoryItemDetails repository={repository}/>
+        <RepositoryItemDetails repository={repository} />
+        {showGitHubButton && (
+          <View>
+            <Button title="Open in GitHub" onPress={openGitHub} />
+          </View>
+        )}
       </View>
-      <View style={styles.grayLine}/>
     </>
   );
 };
